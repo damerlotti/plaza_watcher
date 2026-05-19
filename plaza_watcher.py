@@ -31,13 +31,13 @@ from datetime import datetime
 #         https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates
 #         Look for "chat":{"id": 123456789} -- that number is your chat ID.
 #
-TELEGRAM_TOKEN   = "YOUR_BOT_TOKEN_HERE"    # e.g. "7123456789:AAF...xyz"
-TELEGRAM_CHAT_ID = "YOUR_CHAT_ID_HERE"      # e.g. "123456789"
+TELEGRAM_TOKEN   = os.environ.get("TELEGRAM_TOKEN", "YOUR_BOT_TOKEN_HERE")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "YOUR_CHAT_ID_HERE")
 
 # --- EMAIL SETUP (optional, leave blank if using Telegram only) ---------------
-EMAIL_TO   = ""   # e.g. "you@example.com"
-EMAIL_FROM = ""   # your Gmail address
-EMAIL_PASS = ""   # Gmail App Password (myaccount.google.com -> Security -> App Passwords)
+EMAIL_TO   = os.environ.get("EMAIL_TO", "")
+EMAIL_FROM = os.environ.get("EMAIL_FROM", "")
+EMAIL_PASS = os.environ.get("EMAIL_PASS", "")
 
 # --- FILTER SETTINGS ----------------------------------------------------------
 LIMAPAD_ONLY = True   # Set False to alert on ANY Utrecht studio
@@ -210,12 +210,13 @@ def send_email(listing):
     msg = MIMEMultipart()
     msg["Subject"] = subject
     msg["From"]    = EMAIL_FROM
-    msg["To"]      = EMAIL_TO
+    recipients = [a.strip() for a in EMAIL_TO.split(",") if a.strip()]
+    msg["To"]      = ", ".join(recipients)
     msg.attach(MIMEText(body, "plain"))
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(EMAIL_FROM, EMAIL_PASS)
-        server.send_message(msg)
+        server.sendmail(EMAIL_FROM, recipients, msg.as_string())
 
 
 def main():
