@@ -1,8 +1,6 @@
 name: Plaza Watcher
 
 on:
-  schedule:
-    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -23,6 +21,7 @@ jobs:
 
       - name: Run watcher
         env:
+          TZ: Europe/Amsterdam
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
