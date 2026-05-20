@@ -5,6 +5,7 @@ seen_ids.json is persisted in the GitHub repo via the API (no local filesystem).
 """
 
 from http.server import BaseHTTPRequestHandler
+from urllib.parse import urlparse, parse_qs
 import base64
 import json
 import os
@@ -203,7 +204,9 @@ def run_watcher():
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if CRON_SECRET and self.headers.get("x-cron-secret") != CRON_SECRET:
+        params = parse_qs(urlparse(self.path).query)
+        secret = params.get("secret", [""])[0]
+        if CRON_SECRET and secret != CRON_SECRET:
             self.send_response(401)
             self.end_headers()
             self.wfile.write(b"Unauthorized")
