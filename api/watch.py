@@ -177,6 +177,20 @@ def send_email(listing):
         srv.sendmail(EMAIL_FROM, recipients, msg.as_string())
 
 
+def send_test_email():
+    if not (EMAIL_TO and EMAIL_FROM and EMAIL_PASS):
+        raise ValueError("Email env vars not set")
+    msg            = MIMEMultipart()
+    msg["Subject"] = "Plaza Watcher — test email"
+    msg["From"]    = EMAIL_FROM
+    recipients     = [a.strip() for a in EMAIL_TO.split(",") if a.strip()]
+    msg["To"]      = ", ".join(recipients)
+    msg.attach(MIMEText(f"Test email from Vercel — {datetime.now(AMS).strftime('%Y-%m-%d %H:%M:%S')}", "plain"))
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=8) as srv:
+        srv.login(EMAIL_FROM, EMAIL_PASS)
+        srv.sendmail(EMAIL_FROM, recipients, msg.as_string())
+
+
 # ── Watcher logic ─────────────────────────────────────────────────────────────
 
 def run_watcher():
@@ -212,6 +226,12 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(b"Unauthorized")
             return
         try:
+            if params.get("test", [""])[0] == "true":
+                send_test_email()
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b"Test email sent")
+                return
             run_watcher()
             self.send_response(200)
             self.end_headers()
