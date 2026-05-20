@@ -34,7 +34,7 @@ TELEGRAM_RETRY_DELAY = 2
 API_BASE  = "https://mosaic-plaza-aanbodapi.zig365.nl/api/v1/actueel-aanbod"
 PAGE_SIZE = 60
 SEEN_PATH = "seen_ids.json"
-AMS       = ZoneInfo("Europe/Amsterdam")
+AMS       = ZoneInfo("Europe/Zurich")
 
 
 # ── GitHub state ──────────────────────────────────────────────────────────────
@@ -165,6 +165,9 @@ def send_email(listing):
         f"  Link     : {listing['url']}",
         "", "-" * 50,
         "React quickly -- these go fast!",
+        "",
+        "Browse all available studios:",
+        "https://plaza.newnewnew.space/en/availables-places/living-place#?gesorteerd-op=prijs%2B&locatie=Nederland%2B-%2BUtrecht",
     ])
     msg            = MIMEMultipart()
     msg["Subject"] = subject
