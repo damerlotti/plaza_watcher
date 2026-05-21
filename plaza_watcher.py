@@ -20,6 +20,9 @@ import time
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
+from zoneinfo import ZoneInfo
+
+AMS = ZoneInfo("Europe/Amsterdam")
 
 # --- TELEGRAM SETUP (recommended) ---------------------------------------------
 #
@@ -195,7 +198,7 @@ def send_email(listing):
     body = "\n".join([
         "=" * 50,
         "  New studio at Limapad, Utrecht!",
-        f"  Checked at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        f"  Checked at: {datetime.now(AMS).strftime('%Y-%m-%d %H:%M:%S')}",
         "=" * 50, "",
         f"  Address  : {listing['address']}, {listing['city']}",
         f"  Rent     : EUR {listing['rent']}/month{area_str}",
@@ -220,7 +223,7 @@ def send_email(listing):
 
 
 def main():
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now = datetime.now(AMS).strftime("%Y-%m-%d %H:%M:%S")
 
     # Load previously alerted fingerprints
     seen = set()
