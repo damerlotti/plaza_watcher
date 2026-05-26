@@ -193,11 +193,10 @@ def run_watcher():
         alerted = set()
         for fp, listing in new.items():
             print(f"  -> {listing['address']} EUR {listing['rent']}/mo")
-            if send_telegram(listing):
-                alerted.add(fp)
+            send_telegram(listing)
             send_email(listing)
-        if alerted:
-            save_seen(seen | alerted, sha)
+            alerted.add(fp)
+        save_seen(seen | alerted, sha)
     else:
         label = "Limapad studios" if LIMAPAD_ONLY else "Utrecht studios"
         print(f"[{now}] No new {label}. ({len(current)} live, {len(current)} matched)")

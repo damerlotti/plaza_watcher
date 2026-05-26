@@ -253,16 +253,10 @@ def main():
             print(f"       -> {listing['address']} (published {listing['pub_date']}) "
                   f"-- EUR {listing['rent']}/mo")
 
-            tg_ok = send_telegram(listing)
+            send_telegram(listing)
             send_email(listing)
+            alerted.add(fp)
 
-            if tg_ok:
-                alerted.add(fp)
-            else:
-                # Do NOT mark as seen if Telegram failed -- will retry next cycle
-                print(f"  [Warning] Will retry this listing next run: {listing['address']}")
-
-        # Only persist fingerprints we successfully alerted on
         updated_seen = seen | alerted
     else:
         label = "Limapad Utrecht studios" if LIMAPAD_ONLY else "Utrecht studios"
