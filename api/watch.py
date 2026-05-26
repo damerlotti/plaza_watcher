@@ -57,15 +57,24 @@ def load_seen():
 
 
 def save_seen(seen, sha):
-    url  = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{SEEN_PATH}"
-    body = {
-        "message": "chore: update seen_ids [skip ci]",
-        "content": base64.b64encode(json.dumps(list(seen)).encode()).decode(),
-        "committer": {"name": "plaza-watcher[bot]", "email": "watcher@noreply"},
-    }
-    if sha:
-        body["sha"] = sha
-    requests.put(url, headers=_gh_headers(), json=body, timeout=8).raise_for_status()
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{SEEN_PATH}"
+    for attempt in range(2):
+        body = {
+            "message": "chore: update seen_ids [skip ci]",
+            "content": base64.b64encode(json.dumps(list(seen)).encode()).decode(),
+            "committer": {"name": "plaza-watcher[bot]", "email": "watcher@noreply"},
+        }
+        if sha:
+            body["sha"] = sha
+        r = requests.put(url, headers=_gh_headers(), json=body, timeout=8)
+        if r.status_code == 409 and attempt == 0:
+            print(f"  [save_seen] SHA conflict on attempt 1, re-fetching SHA...")
+            fresh = requests.get(url, headers=_gh_headers(), timeout=8)
+            if fresh.status_code == 200:
+                sha = fresh.json()["sha"]
+                continue
+        r.raise_for_status()
+        return
 
 
 # ── Plaza API ─────────────────────────────────────────────────────────────────
@@ -196,7 +205,11 @@ def run_watcher():
             send_telegram(listing)
             send_email(listing)
             alerted.add(fp)
-        save_seen(seen | alerted, sha)
+        try:
+            save_seen(seen | alerted, sha)
+            print(f"  [save_seen] OK — {len(alerted)} fingerprint(s) persisted.")
+        except Exception as e:
+            print(f"  [save_seen] ERROR — fingerprints NOT saved, will re-alert next run: {e}")
     else:
         label = "Limapad studios" if LIMAPAD_ONLY else "Utrecht studios"
         print(f"[{now}] No new {label}. ({len(current)} live, {len(current)} matched)")
