@@ -118,10 +118,13 @@ def filter_listings(all_items):
         if LIMAPAD_ONLY and "limapad" not in street.lower():
             continue
 
-        # Only alert when the listing is explicitly open for reactions.
-        # Requiring True (not just "not False") prevents alerts on listings
-        # that are in the API but whose reactionData field is absent or null.
-        if reaction.get("isOpenForReaction") is not True:
+        # Log full reactionData so we can tune the filter correctly.
+        print(f"  [DEBUG] {street} {item.get('houseNumber','')} "
+              f"reactionData={json.dumps(reaction)}")
+
+        # Skip listings whose reaction period is closed.
+        if reaction.get("isOpenForReaction") is False:
+            print(f"  [DEBUG] -> SKIPPED (isOpenForReaction=False)")
             continue
 
         fp     = make_fingerprint(item)
