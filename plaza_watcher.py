@@ -127,12 +127,10 @@ def filter_listings(all_items):
         if LIMAPAD_ONLY and "limapad" not in street.lower():
             continue
 
-        # Log full reactionData so we can tune the filter correctly.
-        print(f"  [DEBUG] {street} {house_num} reactionData={json.dumps(reaction)}")
-
-        # Skip listings whose reaction period is closed.
-        if reaction.get("isOpenForReaction") is False:
-            print(f"  [DEBUG] -> SKIPPED (isOpenForReaction=False)")
+        # Only alert when reactions are actually open.
+        # kanReageren ("can react") is the real availability flag in the
+        # Plaza/zig365 API — True means the listing is open for applications.
+        if not reaction.get("kanReageren"):
             continue
 
         fingerprint = make_fingerprint(item)
