@@ -97,7 +97,8 @@ def fetch_all_listings():
 
 
 def filter_listings(all_items):
-    """Apply city, type, and optional Limapad filters. Returns dict keyed by fingerprint."""
+    """Apply city, type, optional Limapad, and open-for-reaction filters.
+    Returns dict keyed by fingerprint."""
     listings = {}
 
     for item in all_items:
@@ -115,6 +116,7 @@ def filter_listings(all_items):
         area        = item.get("areaDwelling")
         floor       = (item.get("floor") or {}).get("localizedName", "") or ""
         pub_date    = item.get("publicationDate", "") or ""
+        reaction    = item.get("reactionData") or {}
 
         if "utrecht" not in f"{city_name} {region_name}".lower():
             continue
@@ -123,6 +125,12 @@ def filter_listings(all_items):
             continue
 
         if LIMAPAD_ONLY and "limapad" not in street.lower():
+            continue
+
+        # Skip listings whose reaction period is closed / in selection.
+        # isOpenForReaction is False once the deadline has passed; if the field
+        # is absent we let it through (fail-open) so we don't miss a new format.
+        if reaction.get("isOpenForReaction") is False:
             continue
 
         fingerprint = make_fingerprint(item)

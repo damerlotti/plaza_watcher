@@ -105,16 +105,23 @@ def filter_listings(all_items):
     for item in all_items:
         if not item.get("id"):
             continue
-        city   = (item.get("city")        or {}).get("name", "")          or ""
-        region = (item.get("regio")       or {}).get("name", "")          or ""
-        typ    = (item.get("dwellingType") or {}).get("localizedName", "") or ""
-        street = item.get("street", "") or ""
+        city     = (item.get("city")        or {}).get("name", "")          or ""
+        region   = (item.get("regio")       or {}).get("name", "")          or ""
+        typ      = (item.get("dwellingType") or {}).get("localizedName", "") or ""
+        street   = item.get("street", "") or ""
+        reaction = item.get("reactionData") or {}
 
         if "utrecht" not in f"{city} {region}".lower():
             continue
         if "studio" not in typ.lower():
             continue
         if LIMAPAD_ONLY and "limapad" not in street.lower():
+            continue
+
+        # Skip listings whose reaction period is closed / in selection.
+        # isOpenForReaction is False once the deadline has passed; if the field
+        # is absent we let it through (fail-open) so we don't miss a new format.
+        if reaction.get("isOpenForReaction") is False:
             continue
 
         fp     = make_fingerprint(item)
